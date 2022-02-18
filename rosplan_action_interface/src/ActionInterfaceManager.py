@@ -87,6 +87,7 @@ class ActionInterfaceManager(object):
                 
             # iterate through interfaces and send feedback
             for interface in self._action_interfaces.values():
+                action_status_to_clean = []
                 for act in interface._action_status.keys():
 
                     # action successful
@@ -99,8 +100,12 @@ class ActionInterfaceManager(object):
                         rospy.loginfo('KCL: ({}) Reporting action complete: {} {}'.format(rospy.get_name(), act, interface._action_name))
                         # publish feedback msg
                         self.publish_feedback(act[0], act[1], interface._action_status[act])
-                        # remove completed action data from interface
-                        interface.clean_action(act)
+                        # remove completed action data from interface (don't do this within the foreach)
+                        action_status_to_clean.append(act)
+
+                # clean marked action_status
+                for i in range(len(action_status_to_clean)):
+                    interface.clean_action(action_status_to_clean.pop())
 
             rate.sleep()
 
